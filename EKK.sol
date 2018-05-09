@@ -31,7 +31,7 @@ contract admined { //This token contract is administered
     */
     function admined() internal {
         admin = msg.sender; //Set initial admin to contract creator
-        emit Admined(admin);
+        Admined(admin);
     }
 
    /**
@@ -40,7 +40,7 @@ contract admined { //This token contract is administered
     */
     function setAllowedAddress(address _to) onlyAdmin public {
         allowedAddress = _to;
-        emit AllowedSet(_to);
+        AllowedSet(_to);
     }
 
     modifier onlyAdmin() { //A modifier to define admin-only functions
@@ -65,7 +65,7 @@ contract admined { //This token contract is administered
     function transferAdminship(address _newAdmin) onlyAdmin public { //Admin can be transfered
         require(_newAdmin != 0);
         admin = _newAdmin;
-        emit TransferAdminship(admin);
+        TransferAdminship(admin);
     }
 
    /**
@@ -74,7 +74,7 @@ contract admined { //This token contract is administered
     */
     function setSupplyLock(bool _set) onlyAdmin public { //Only the admin can set a lock on supply
         lockSupply = _set;
-        emit SetSupplyLock(_set);
+        SetSupplyLock(_set);
     }
 
    /**
@@ -83,7 +83,7 @@ contract admined { //This token contract is administered
     */
     function setTransferLock(bool _set) onlyAdmin public { //Only the admin can set a lock on transfers
         lockTransfer = _set;
-        emit SetTransferLock(_set);
+        SetTransferLock(_set);
     }
 
     //All admin actions have a log for public review
@@ -124,7 +124,7 @@ contract ERC20Token is ERC20TokenInterface, admined { //Standard definition of a
         require(frozen[msg.sender]==false);
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
-        emit Transfer(msg.sender, _to, _value);
+        Transfer(msg.sender, _to, _value);
         return true;
     }
 
@@ -140,7 +140,7 @@ contract ERC20Token is ERC20TokenInterface, admined { //Standard definition of a
         allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
-        emit Transfer(_from, _to, _value);
+        Transfer(_from, _to, _value);
         return true;
     }
 
@@ -152,7 +152,7 @@ contract ERC20Token is ERC20TokenInterface, admined { //Standard definition of a
     function approve(address _spender, uint256 _value) public returns (bool success) {
         require((_value == 0) || (allowed[msg.sender][_spender] == 0)); //exploit mitigation
         allowed[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
+        Approval(msg.sender, _spender, _value);
         return true;
     }
 
@@ -173,8 +173,8 @@ contract ERC20Token is ERC20TokenInterface, admined { //Standard definition of a
     function mintToken(address _target, uint256 _mintedAmount) onlyAdmin supplyLock public {
         balances[_target] = SafeMath.add(balances[_target], _mintedAmount);
         totalSupply = SafeMath.add(totalSupply, _mintedAmount);
-        emit Transfer(0, this, _mintedAmount);
-        emit Transfer(this, _target, _mintedAmount);
+        Transfer(0, this, _mintedAmount);
+        Transfer(this, _target, _mintedAmount);
     }
 
     /**
@@ -184,7 +184,7 @@ contract ERC20Token is ERC20TokenInterface, admined { //Standard definition of a
     */
     function setFrozen(address _target,bool _flag) onlyAdmin public {
         frozen[_target]=_flag;
-        emit FrozenStatus(_target,_flag);
+        FrozenStatus(_target,_flag);
     }
 
 
@@ -219,8 +219,8 @@ contract EKK is ERC20Token {
         setTransferLock(true);
         setSupplyLock(true);
 
-        emit Transfer(0, this, totalSupply);
-        emit Transfer(this, msg.sender, balances[msg.sender]);
+        Transfer(0, this, totalSupply);
+        Transfer(this, msg.sender, balances[msg.sender]);
     }
     
     /**
