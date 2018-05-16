@@ -58,7 +58,11 @@ contract EKKDistribution is Ownable, usingOraclize {
         token = EKK(_tokenaddress);
     }
     
+    function serWalletAddress(address _wallet) onlyOwner public {
+        wallet = _wallet;
+    }
     function () payable external{
+        require(msg.value > 0);
         require(DistributionStarted || msg.sender == owner);
         if(DistributionStarted && msg.sender != owner) {
             Campaign storage c = campaigns[currentPeriod];
@@ -71,10 +75,12 @@ contract EKKDistribution is Ownable, usingOraclize {
     
     function TokenDistribution() internal {
         Campaign storage c = campaigns[currentPeriod];
-        for(uint i = 1; i <= c.numInvestors; i++) {
-            uint256 tokenBought = TokenPerPeriod.mul(c.investors[i].amount).div(c.AllContribution);
-            token.transferfromThis(c.investors[i].addr, tokenBought);
-            TokenPurchase(c.investors[i].addr, tokenBought);
+        if(c.numInvestors >= 1) {
+            for(uint i = 1; i <= c.numInvestors; i++) {
+                uint256 tokenBought = TokenPerPeriod.mul(c.investors[i].amount).div(c.AllContribution);
+                token.transferfromThis(c.investors[i].addr, tokenBought);
+                TokenPurchase(c.investors[i].addr, tokenBought);
+            }
         }
         currentPeriod++;
         campaigns[currentPeriod] = Campaign(0,0);
