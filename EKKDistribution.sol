@@ -12,6 +12,7 @@ contract EKKDistribution is Ownable, usingOraclize {
     uint256 CampaignPeriod = 600;
     uint256 TokenPerPeriod = 1000000 * 10**uint256(18);
     uint256 EverytimePeriod = 82800; //Every 23 hours
+    uint256 minimumInvestment = 100 finney;
     uint public currentPeriod = 0;
     bool public DistributionStarted = false;
     // address where funds are collected
@@ -58,11 +59,11 @@ contract EKKDistribution is Ownable, usingOraclize {
         token = EKK(_tokenaddress);
     }
     
-    function serWalletAddress(address _wallet) onlyOwner public {
+    function setWalletAddress(address _wallet) onlyOwner public {
         wallet = _wallet;
     }
     function () payable external{
-        require(msg.value > 0);
+        require(msg.value >= minimumInvestment);
         require(DistributionStarted || msg.sender == owner);
         if(DistributionStarted && msg.sender != owner) {
             Campaign storage c = campaigns[currentPeriod];
