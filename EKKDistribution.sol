@@ -15,12 +15,10 @@ contract EKKDistribution is Ownable {
     
     uint public  startTime;            // start time
 
-    mapping (uint => uint)   public  dailyTotals;
+    mapping (uint => uint)   public  periodAllContribution;
     mapping (uint => mapping (address => uint))  public  userBuys;
     mapping (uint => mapping (address => bool))  public  claimed;
 
-    uint public currentPeriod = 0;
-    bool public DistributionStarted = false;
     // address where funds are collected
     address public wallet;
     EKK public token;
@@ -37,7 +35,7 @@ contract EKKDistribution is Ownable {
         return block.timestamp;
     }
 
-    function today() constant returns (uint) {
+    function currentperiod() constant returns (uint) {
         return dayFor(time());
     }
 
@@ -49,7 +47,7 @@ contract EKKDistribution is Ownable {
             : timestamp.sub(startTime) / 23 hours + 1;
     }
     
-    function setStarttime(uint _starttime) {
+    function setStarttime(uint _starttime) onlyOwner public {
         startTime = _starttime;
     }
     function setWalletAddress(address _wallet) onlyOwner public {
@@ -58,17 +56,17 @@ contract EKKDistribution is Ownable {
     
     
     function buytokens(uint day) internal {
-        require(today() > 0 && today() <= CampaignPeriod);
+        require(currentperiod() > 0 && currentperiod() <= CampaignPeriod);
         require(msg.value >= minimumInvestment);
 
         userBuys[day][msg.sender] += msg.value;
-        dailyTotals[day] += msg.value;
+        periodAllContribution[day] += msg.value;
 
         LogBuy(day, msg.sender, msg.value);
     }
 
     function buy() payable {
-       buytokens(today());
+       buytokens(currentperiod());
     }
 
     function () payable external{
@@ -78,13 +76,13 @@ contract EKKDistribution is Ownable {
     
     function claim(uint day) public {
         
-        require(today() > day);
+        require(currentperiod() > day);
 
-        if (claimed[day][msg.sender] || dailyTotals[day] == 0) {
+        if (claimed[day][msg.sender] || periodAllContribution[day] == 0) {
             return;
         }
 
-        uint256 reward = TokenPerPeriod.mul(userBuys[day][msg.sender]).div(dailyTotals[day]);
+        uint256 reward = TokenPerPeriod.mul(userBuys[day][msg.sender]).div(periodAllContribution[day]);
         token.transferfromThis(msg.sender, reward);
         claimed[day][msg.sender] = true;
 
@@ -92,7 +90,7 @@ contract EKKDistribution is Ownable {
     }
 
     function claimAll() public {
-        for (uint i = 0; i < today(); i++) {
+        for (uint i = 0; i < currentperiod(); i++) {
             claim(i);
         }
     }
